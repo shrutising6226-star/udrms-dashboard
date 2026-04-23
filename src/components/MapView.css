@@ -1,0 +1,114 @@
+.map-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  min-height: 300px;
+}
+
+.map-header {
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.map-header h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.legend {
+  display: flex;
+  gap: 1rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.practical-map {
+  flex: 1;
+  background: var(--bg-surface-hover);
+  border: 1px solid var(--border-color);
+  margin: 1rem;
+  border-radius: 8px;
+  position: relative;
+}
+
+.map-region {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 2;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.map-region:hover {
+  transform: translate(-50%, -50%) scale(1.1);
+  z-index: 3;
+}
+
+.region-marker {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-base);
+}
+
+.map-region.active .region-marker {
+  border: 2px solid var(--accent-cyan);
+  color: var(--accent-cyan);
+  box-shadow: 0 0 10px var(--accent-cyan-dim);
+}
+
+.map-region.need .region-marker {
+  border: 2px solid #ef4444;
+  color: #ef4444;
+}
+
+.region-label {
+  background: var(--bg-base);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+}
+
+.region-label strong {
+  font-size: 0.8rem;
+  color: var(--text-primary);
+}
+
+.region-label span {
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+}
+
+.node-ping.red {
+  position: absolute;
+  top: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid #ef4444;
+  animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  opacity: 0;
+  pointer-events: none;
+}
