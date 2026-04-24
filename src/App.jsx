@@ -6,6 +6,8 @@ import RegistryDashboard from './pages/RegistryDashboard';
 import FundMap from './pages/FundMap';
 import AgenciesView from './pages/AgenciesView';
 import AnalysisView from './pages/AnalysisView';
+import ResourceMarketplace from './pages/ResourceMarketplace';
+import PublicPortal from './pages/PublicPortal';
 import './App.css';
 import './index.css';
 
@@ -34,6 +36,7 @@ const App = () => {
     <Router>
       <Routes>
         <Route path="/login" element={<LoginView />} />
+        <Route path="/public" element={<PublicPortal />} />
         
         {/* Protected Dashboard Routes */}
         <Route 
@@ -42,10 +45,12 @@ const App = () => {
             <ProtectedRoute>
               <Routes>
                 <Route path="/registry" element={<RegistryDashboard />} />
+                <Route path="/resources" element={<ResourceMarketplace />} />
                 <Route path="/map" element={<FundMap />} />
                 <Route path="/agencies" element={<AgenciesView />} />
                 <Route path="/analysis" element={<AnalysisView />} />
                 <Route path="/" element={<Navigate to="/registry" replace />} />
+                <Route path="*" element={<Navigate to="/registry" replace />} />
               </Routes>
             </ProtectedRoute>
           } 

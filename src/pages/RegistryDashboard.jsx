@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { AppShell } from '../components/layout/AppShell';
-import { AlertTriangle, CheckCircle2, MapPin, Building, Users, IndianRupee, Plus, X, BarChart3, PieChart as PieChartIcon } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, MapPin, Building, Users, IndianRupee, Plus, X, BarChart3, PieChart as PieChartIcon, Lightbulb } from 'lucide-react';
 import { format } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
 const RegistryDashboard = () => {
   const { token, user } = useAuthStore();
   const [activities, setActivities] = useState([]);
+  const [lessons, setLessons] = useState([]);
   const [loading, setLoading] = useState(true);
   
   // Filters
@@ -22,22 +23,23 @@ const RegistryDashboard = () => {
     locationName: '', budget: '', beneficiaries: ''
   });
 
-  const fetchActivities = async () => {
+  const fetchData = async () => {
     try {
-      const res = await fetch('/api/v1/activities', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await res.json();
-      setActivities(data);
+      const [actRes, lessonRes] = await Promise.all([
+        fetch('/api/v1/activities', { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch('/api/v1/analysis', { headers: { 'Authorization': `Bearer ${token}` } })
+      ]);
+      setActivities(await actRes.json());
+      setLessons(await lessonRes.json());
     } catch (error) {
-      console.error("Failed to fetch activities", error);
+      console.error("Failed to fetch data", error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchActivities();
+    fetchData();
   }, [token]);
 
   const handleSubmitActivity = async (e) => {
@@ -81,7 +83,7 @@ const RegistryDashboard = () => {
       });
       setShowModal(false);
       setFormData({ title: '', activityType: 'MEDICAL', description: '', zone: '', locationName: '', budget: '', beneficiaries: '' });
-      fetchActivities(); // Refresh to see duplicates
+      fetchData(); // Refresh to see duplicates
     } catch (err) {
       console.error(err);
     } finally {
@@ -95,7 +97,7 @@ const RegistryDashboard = () => {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      fetchActivities(); // Refresh list to clear warnings
+      fetchData(); // Refresh list to clear warnings
     } catch (err) {
       console.error("Failed to resolve", err);
     }
@@ -127,6 +129,11 @@ const RegistryDashboard = () => {
   }, {});
   const pieChartData = Object.keys(activitiesByType).map(key => ({ name: key, value: activitiesByType[key] }));
   const COLORS = ['#2563EB', '#16A34A', '#D97706', '#DC2626', '#9333EA'];
+
+  const relevantLessons = lessons.filter(l => 
+    (formData.zone && l.region.toLowerCase().includes(formData.zone.toLowerCase())) || 
+    (formData.activityType && l.tags.toLowerCase().includes(formData.activityType.toLowerCase()))
+  );
 
   if (loading) return <AppShell><div className="flex justify-center p-12">Loading Registry...</div></AppShell>;
 
@@ -160,7 +167,11 @@ const RegistryDashboard = () => {
                     <XAxis dataKey="name" tick={{fontSize: 12}} />
                     <YAxis tick={{fontSize: 12}} tickFormatter={(value) => `₹${value/1000}k`} />
                     <RechartsTooltip cursor={{fill: '#F1F5F9'}} formatter={(value) => `₹${value.toLocaleString()}`} />
-                    <Bar dataKey="budget" fill="#2563EB" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="budget" radius={[4, 4, 0, 0]}>
+                      {barChartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -237,13 +248,14 @@ const RegistryDashboard = () => {
                   <p className="text-xs text-text-muted font-medium mb-0.5">Beneficiaries</p>
                   <p className="text-sm font-bold flex items-center"><Users className="w-3 h-3 mr-1"/> {activity.beneficiaries.toLocaleString()}</p>
                 </div>
-                <div>
-                  <p className="text-xs text-text-muted font-medium mb-0.5">Start Date</p>
-                  <p className="text-sm font-semibold">{format(new Date(activity.startDate), 'MMM dd, yyyy')}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-text-muted font-medium mb-0.5">Status</p>
-                  <p className="text-sm font-semibold text-text-primary">{activity.status}</p>
+                <div className="col-span-2 pl-4 border-l border-gray-100">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-xs font-bold text-gray-500 uppercase">Logistics: {activity.supplyStage}</span>
+                    <span className="text-xs font-bold text-blue-600">{activity.completionPct}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-blue-600 h-2 rounded-full transition-all" style={{width: `${activity.completionPct}%`}}></div>
+                  </div>
                 </div>
               </div>
 
@@ -303,6 +315,22 @@ const RegistryDashboard = () => {
                     <input required className="w-full border p-2 rounded" value={formData.locationName} onChange={e => setFormData({...formData, locationName: e.target.value})} placeholder="e.g. Mumbai, India" />
                     <p className="text-xs text-text-muted mt-1">This will automatically be geocoded to coordinates on the map.</p>
                   </div>
+                  
+                  {relevantLessons.length > 0 && formData.zone && (
+                    <div className="col-span-2 bg-blue-50 border border-blue-200 p-4 rounded-xl mt-2 shadow-inner">
+                      <h4 className="text-sm font-bold text-blue-800 mb-2 flex items-center gap-2"><Lightbulb className="w-5 h-5"/> Shadow Planning: Lessons from the Past</h4>
+                      <p className="text-xs text-blue-700 mb-2">Based on your selected Zone ({formData.zone}) and Type ({formData.activityType}), here are relevant historical insights:</p>
+                      <ul className="text-sm text-blue-900 space-y-3">
+                        {relevantLessons.map(l => (
+                          <li key={l.id} className="bg-white p-3 rounded-lg border border-blue-100 shadow-sm">
+                            <p className="mb-1"><span className="font-bold text-red-600">Warning:</span> {l.whatFailed}</p>
+                            <p><span className="font-bold text-green-700">Recommendation:</span> {l.whatWorked}</p>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
                   <div className="col-span-2">
                     <label className="block text-sm font-medium mb-1">Description</label>
                     <textarea required className="w-full border p-2 rounded" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} rows="2" />

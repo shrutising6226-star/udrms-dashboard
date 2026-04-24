@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { AppShell } from '../components/layout/AppShell';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, CircleMarker } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -18,6 +18,7 @@ const FundMap = () => {
   const { token } = useAuthStore();
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isHeatmap, setIsHeatmap] = useState(false);
 
   useEffect(() => {
     const fetchActivities = async () => {
@@ -41,33 +42,50 @@ const FundMap = () => {
   return (
     <AppShell>
       <div className="flex flex-col gap-6 h-full">
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary tracking-tight">Geo-tagged Deployments</h1>
-          <p className="text-sm text-text-secondary mt-1">Live Map of all planned and active field interventions.</p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-text-primary tracking-tight">Geo-tagged Deployments</h1>
+            <p className="text-sm text-text-secondary mt-1">Live Map of all planned and active field interventions.</p>
+          </div>
+          <button 
+            onClick={() => setIsHeatmap(!isHeatmap)} 
+            className={`px-4 py-2 font-bold rounded-lg text-sm transition-colors ${isHeatmap ? 'bg-red-100 text-red-600 border border-red-200 hover:bg-red-200' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'}`}
+          >
+            {isHeatmap ? '🔥 Heatmap Active' : '📍 Switch to Heatmap'}
+          </button>
         </div>
 
         <div className="flex-1 bg-surface rounded-xl shadow-sm border border-border overflow-hidden min-h-[600px]">
           <MapContainer center={[19.0760, 72.8777]} zoom={12} style={{ height: '100%', width: '100%' }}>
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              url={isHeatmap ? "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"}
             />
             {activities.map(activity => (
-              <Marker key={activity.id} position={[activity.latitude, activity.longitude]} icon={customIcon}>
-                <Popup>
-                  <div className="font-sans">
-                    <h3 className="font-bold text-sm mb-1">{activity.title}</h3>
-                    <p className="text-xs text-gray-600 mb-2">{activity.agency.name}</p>
-                    <div className="text-xs mb-1"><b>Status:</b> {activity.status}</div>
-                    <div className="text-xs mb-1"><b>Budget:</b> ₹{activity.budget.toLocaleString()}</div>
-                    {activity.isDuplicated && (
-                      <div className="mt-2 text-xs text-orange-600 font-bold bg-orange-50 px-2 py-1 rounded">
-                        ⚠️ Overlap Flagged
-                      </div>
-                    )}
-                  </div>
-                </Popup>
-              </Marker>
+              isHeatmap ? (
+                <CircleMarker 
+                  key={`heat-${activity.id}`} 
+                  center={[activity.latitude, activity.longitude]} 
+                  radius={40} 
+                  pathOptions={{ color: 'red', fillColor: 'red', fillOpacity: 0.3, stroke: false }} 
+                />
+              ) : (
+                <Marker key={activity.id} position={[activity.latitude, activity.longitude]} icon={customIcon}>
+                  <Popup>
+                    <div className="font-sans">
+                      <h3 className="font-bold text-sm mb-1">{activity.title}</h3>
+                      <p className="text-xs text-gray-600 mb-2">{activity.agency.name}</p>
+                      <div className="text-xs mb-1"><b>Status:</b> {activity.status}</div>
+                      <div className="text-xs mb-1"><b>Budget:</b> ₹{activity.budget.toLocaleString()}</div>
+                      {activity.isDuplicated && (
+                        <div className="mt-2 text-xs text-orange-600 font-bold bg-orange-50 px-2 py-1 rounded">
+                          ⚠️ Overlap Flagged
+                        </div>
+                      )}
+                    </div>
+                  </Popup>
+                </Marker>
+              )
             ))}
           </MapContainer>
         </div>

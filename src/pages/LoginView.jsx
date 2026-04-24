@@ -26,7 +26,7 @@ const LoginView = () => {
         <div className="flex justify-center items-center gap-2 mb-6">
           <Network size={32} className="text-blue-600" />
           <h2 className="text-center text-3xl font-extrabold text-blue-900 tracking-tight">
-            UDRMS
+            ReliefSync
           </h2>
         </div>
         <h2 className="text-center text-xl font-medium text-text-secondary">

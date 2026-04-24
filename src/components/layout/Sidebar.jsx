@@ -1,14 +1,14 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { ShieldAlert, LayoutDashboard, Map, Database, Users, AlertTriangle } from 'lucide-react';
+import { ShieldAlert, LayoutDashboard, Map, Database, Users, AlertTriangle, ArrowRightLeft } from 'lucide-react';
 
 export const Sidebar = () => {
   const navItems = [
-    { name: 'Dashboard', path: '/', icon: LayoutDashboard },
-    { name: 'Activity Registry', path: '/registry', icon: Database },
+    { name: 'Dashboard', path: '/registry', icon: LayoutDashboard },
+    { name: 'Resource Market', path: '/resources', icon: ArrowRightLeft },
     { name: 'Fund Map', path: '/map', icon: Map },
     { name: 'Agencies', path: '/agencies', icon: Users },
-    { name: 'Post-Disaster Analysis', path: '/analysis', icon: AlertTriangle },
+    { name: 'Post-Disaster Analysis', path: '/analysis', icon: AlertTriangle }
   ];
 
   const [duplicatedCount, setDuplicatedCount] = React.useState(0);
@@ -30,7 +30,7 @@ export const Sidebar = () => {
     <div className="w-[240px] bg-surface h-screen flex flex-col border-r border-border fixed left-0 top-0">
       <div className="h-16 flex items-center px-6 border-b border-border bg-blue-50">
         <ShieldAlert className="w-6 h-6 text-blue-600 mr-2" />
-        <span className="font-bold text-lg text-blue-900 tracking-tight">UDRMS</span>
+        <span className="font-bold text-lg text-blue-900 tracking-tight">ReliefSync</span>
       </div>
       
       <div className="flex-1 overflow-y-auto py-6 flex flex-col gap-2 px-4">

@@ -16,6 +16,8 @@ model Agency {
 
   activities  ActivityRegistry[]
   funds       FundDisbursement[]
+  inventory   ResourceInventory[]
+  needs       ResourceNeed[]
 }
 
 model ActivityRegistry {
@@ -40,10 +42,42 @@ model ActivityRegistry {
   isDuplicated    Boolean  @default(false)
   duplicateNotes  String?
 
+  completionPct   Int      @default(0) // 0 to 100
+  supplyStage     String   @default("PROCURED") // 'PROCURED', 'IN_TRANSIT', 'DISTRIBUTED'
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   
   funds           FundDisbursement[]
+}
+
+model ResourceInventory {
+  id              String   @id @default(uuid())
+  agencyId        String
+  agency          Agency   @relation(fields: [agencyId], references: [id])
+  
+  resourceName    String
+  category        String   // 'MEDICAL', 'FOOD', 'SHELTER', etc.
+  quantity        Int
+  unit            String   // 'boxes', 'kits', 'kg'
+  location        String   // e.g. 'Coastal Sector 4'
+  
+  createdAt       DateTime @default(now())
+}
+
+model ResourceNeed {
+  id              String   @id @default(uuid())
+  agencyId        String
+  agency          Agency   @relation(fields: [agencyId], references: [id])
+  
+  resourceName    String
+  category        String
+  quantity        Int
+  unit            String
+  location        String
+  urgency         String   @default("HIGH") // 'CRITICAL', 'HIGH', 'MEDIUM', 'LOW'
+  
+  createdAt       DateTime @default(now())
 }
 
 model FundDisbursement {
@@ -90,4 +124,11 @@ model User {
   agencyName   String?
   avatarUrl    String?
   createdAt    DateTime @default(now())
+}
+
+model CommunityPost {
+  id        String   @id @default(uuid())
+  author    String   @default("Anonymous")
+  content   String
+  createdAt DateTime @default(now())
 }
