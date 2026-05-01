@@ -164,7 +164,10 @@ const RegistryDashboard = () => {
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={barChartData}>
-                    <XAxis dataKey="name" tick={{fontSize: 11}} interval={0} tickFormatter={(value) => value.length > 15 ? `${value.substring(0, 15)}...` : value} />
+                    <XAxis dataKey="name" tick={{fontSize: 12, fontWeight: 'bold'}} interval={0} tickFormatter={(value) => {
+                      const words = value.split(' ');
+                      return words.length > 1 ? words.map(w => w[0]).join('').toUpperCase().substring(0, 4) : value.substring(0, 10);
+                    }} />
                     <YAxis tick={{fontSize: 12}} tickFormatter={(value) => `₹${value/1000}k`} />
                     <RechartsTooltip cursor={{fill: '#F1F5F9'}} formatter={(value) => `₹${value.toLocaleString()}`} />
                     <Bar dataKey="budget" radius={[4, 4, 0, 0]}>
