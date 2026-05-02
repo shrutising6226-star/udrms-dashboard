@@ -293,6 +293,9 @@ app.get('/api/v1/debug/database', async (req, res) => {
   try {
     const users = await prisma.user.findMany();
     const activities = await prisma.activityRegistry.findMany();
+    const inventory = await prisma.resourceInventory.findMany();
+    const needs = await prisma.resourceNeed.findMany();
+    const analysis = await prisma.disasterAnalysis.findMany();
     
     let html = `
       <html>
@@ -300,8 +303,8 @@ app.get('/api/v1/debug/database', async (req, res) => {
         <title>Live Database Viewer</title>
         <style>
           body { font-family: system-ui, sans-serif; padding: 20px; background: #f4f4f5; }
-          h2 { color: #2563eb; border-bottom: 2px solid #e5e7eb; padding-bottom: 5px; }
-          table { width: 100%; border-collapse: collapse; margin-bottom: 30px; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; }
+          h2 { color: #2563eb; border-bottom: 2px solid #e5e7eb; padding-bottom: 5px; margin-top: 40px; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 10px; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; }
           th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; }
           th { background: #f8fafc; font-weight: 600; color: #475569; }
           td { color: #334155; font-size: 14px; }
@@ -322,12 +325,31 @@ app.get('/api/v1/debug/database', async (req, res) => {
           <tr><th>Title</th><th>Type</th><th>Zone</th><th>Budget</th><th>Status</th></tr>
           ${activities.map(a => `<tr><td>${a.title}</td><td>${a.activityType}</td><td>${a.zone}</td><td>$${a.budget}</td><td>${a.status}</td></tr>`).join('')}
         </table>
+
+        <h2>3. Resource Inventory Table (Marketplace)</h2>
+        <table>
+          <tr><th>Resource</th><th>Category</th><th>Quantity</th><th>Unit</th><th>Location</th></tr>
+          ${inventory.map(i => `<tr><td>${i.resourceName}</td><td>${i.category}</td><td>${i.quantity}</td><td>${i.unit}</td><td>${i.location}</td></tr>`).join('')}
+        </table>
+
+        <h2>4. Resource Needs Table (Marketplace)</h2>
+        <table>
+          <tr><th>Resource Need</th><th>Category</th><th>Quantity</th><th>Urgency</th><th>Location</th></tr>
+          ${needs.map(n => `<tr><td>${n.resourceName}</td><td>${n.category}</td><td>${n.quantity}</td><td>${n.urgency}</td><td>${n.location}</td></tr>`).join('')}
+        </table>
+
+        <h2>5. Disaster Analysis Report Table</h2>
+        <table>
+          <tr><th>Disaster Type</th><th>Region</th><th>What Worked</th><th>What Failed</th></tr>
+          ${analysis.map(a => `<tr><td>${a.disasterType}</td><td>${a.region}</td><td>${a.whatWorked.substring(0,50)}...</td><td>${a.whatFailed.substring(0,50)}...</td></tr>`).join('')}
+        </table>
       </body>
       </html>
     `;
     res.send(html);
   } catch (err) {
-    res.status(500).send("Database Error");
+    console.error(err);
+    res.status(500).send("Database Error: " + err.message);
   }
 });
 
