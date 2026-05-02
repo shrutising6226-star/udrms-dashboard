@@ -288,6 +288,49 @@ app.post('/api/v1/public/posts', async (req, res) => {
   } catch (err) { res.status(500).json({ error: 'Internal server error' }); }
 });
 
+// --- HIDDEN DB VIEWER FOR PRESENTATION ---
+app.get('/api/v1/debug/database', async (req, res) => {
+  try {
+    const users = await prisma.user.findMany();
+    const activities = await prisma.activityRegistry.findMany();
+    
+    let html = `
+      <html>
+      <head>
+        <title>Live Database Viewer</title>
+        <style>
+          body { font-family: system-ui, sans-serif; padding: 20px; background: #f4f4f5; }
+          h2 { color: #2563eb; border-bottom: 2px solid #e5e7eb; padding-bottom: 5px; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 30px; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; }
+          th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+          th { background: #f8fafc; font-weight: 600; color: #475569; }
+          td { color: #334155; font-size: 14px; }
+        </style>
+      </head>
+      <body>
+        <h1>🟢 Live Render Database Viewer</h1>
+        <p>Proof that the database is running securely on the live production server!</p>
+        
+        <h2>1. Users Table</h2>
+        <table>
+          <tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Agency</th></tr>
+          ${users.map(u => `<tr><td>${u.id.substring(0,8)}...</td><td>${u.name}</td><td>${u.email}</td><td>${u.role}</td><td>${u.agencyName || 'N/A'}</td></tr>`).join('')}
+        </table>
+
+        <h2>2. Activity Registry Table</h2>
+        <table>
+          <tr><th>Title</th><th>Type</th><th>Zone</th><th>Budget</th><th>Status</th></tr>
+          ${activities.map(a => `<tr><td>${a.title}</td><td>${a.activityType}</td><td>${a.zone}</td><td>$${a.budget}</td><td>${a.status}</td></tr>`).join('')}
+        </table>
+      </body>
+      </html>
+    `;
+    res.send(html);
+  } catch (err) {
+    res.status(500).send("Database Error");
+  }
+});
+
 // Serve static files in production or use Vite middleware in dev
 import path from 'path';
 import { fileURLToPath } from 'url';
